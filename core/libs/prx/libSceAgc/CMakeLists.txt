@@ -32,6 +32,7 @@ add_library(libSceAgc SHARED EXCLUDE_FROM_ALL
         ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/PacketInfo.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/Platform.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/RegisterDefaults.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/SemaphoreMemory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/ShaderFusion.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Misc/src/Suspend.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Patch/src/CondExec.cpp
@@ -386,5 +387,23 @@ if(BUILD_TESTING)
     if(WIN32)
         set_tests_properties(agc_shader_helpers PROPERTIES ENVIRONMENT_MODIFICATION
             "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
+    endif()
+endif()
+
+add_test_executable(agc_semaphore_memory_tests EXCLUDE_FROM_ALL tests/SemaphoreMemory.cpp)
+target_include_directories(agc_semaphore_memory_tests PRIVATE ${LIBS_INCLUDE_DIR})
+target_link_libraries(agc_semaphore_memory_tests PRIVATE libSceAgc libc)
+set_target_properties(agc_semaphore_memory_tests PROPERTIES CXX_EXTENSIONS OFF)
+configure_windows_unwind(agc_semaphore_memory_tests)
+if(BUILD_TESTING)
+    set_target_properties(agc_semaphore_memory_tests PROPERTIES EXCLUDE_FROM_ALL FALSE)
+    add_test(NAME agc_amm_semaphore_single COMMAND agc_semaphore_memory_tests single)
+    add_test(NAME agc_amm_semaphore_multiple COMMAND agc_semaphore_memory_tests multiple)
+    add_test(NAME agc_amm_semaphore_concurrent COMMAND agc_semaphore_memory_tests concurrent)
+    set_tests_properties(agc_amm_semaphore_single agc_amm_semaphore_multiple agc_amm_semaphore_concurrent
+        PROPERTIES TIMEOUT 30)
+    if(WIN32)
+        set_tests_properties(agc_amm_semaphore_single agc_amm_semaphore_multiple agc_amm_semaphore_concurrent
+            PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_FILE_DIR:libc>")
     endif()
 endif()
